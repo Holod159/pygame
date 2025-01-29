@@ -7,7 +7,7 @@ from pygame.examples.moveit import WIDTH
 FPS = 50
 pygame.init()
 pname = ['mag.png', 'woin.png', 'wor.png']
-polz = pname[2]
+polz = pname[0]
 size = width, height = 1200, 800
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
@@ -38,6 +38,7 @@ class MagSprite(pygame.sprite.Sprite):
         super().__init__(all_sprites)
         self.frames = []
         self.columns = columns
+        self.f = 1
         self.d = {'up': 2, 'down': 0, 'left': 1, 'right': 1}
         self.cut_sheet(sheet, columns, rows)
         self.cur_frame = 0
@@ -56,33 +57,41 @@ class MagSprite(pygame.sprite.Sprite):
                     frame_location, self.rect.size)))
 
     def update(self):
-        keys = pygame.key.get_pressed()
-        move = None
-        if keys[pygame.K_UP]:
-            move = 'up'
-            self.rect.y -= 5
-        elif keys[pygame.K_DOWN]:
-            move = 'down'
-            self.rect.y += 5
-        elif keys[pygame.K_LEFT]:
-            move = 'left'
-            self.rect.x -= 5
-        elif keys[pygame.K_RIGHT]:
-            move = 'right'
-            self.rect.x += 5
-        if move:
-            self.sz += 1
-            if self.sz > self.counter:
-                self.sz = 0
-                self.cur_frame = ((self.cur_frame + 1) % self.columns)
-                self.image = pygame.transform.scale(self.frames[self.cur_frame + self.d[move] * self.columns], (147, 133))
-                if move == 'right':
-                    self.image = pygame.transform.flip(self.image, True, False)
+        if self.f:
+            keys = pygame.key.get_pressed()
+            move = None
+            if keys[pygame.K_UP]:
+                move = 'up'
+                self.rect.y -= 5
+            elif keys[pygame.K_DOWN]:
+                move = 'down'
+                self.rect.y += 5
+            elif keys[pygame.K_LEFT]:
+                move = 'left'
+                self.rect.x -= 5
+            elif keys[pygame.K_RIGHT]:
+                move = 'right'
+                self.rect.x += 5
+            if move:
+                self.sz += 1
+                if self.sz > self.counter:
+                    self.sz = 0
+                    self.cur_frame = ((self.cur_frame + 1) % self.columns)
+                    self.image = pygame.transform.scale(self.frames[self.cur_frame + self.d[move] * self.columns], (147 * 0.8, 133 * 0.8))
+                    if move == 'right':
+                        self.image = pygame.transform.flip(self.image, True, False)
+
+    def mover(self):
+        self.f = 0
+
+    def imover(self):
+        self.f = 1
 
 
 class WoinWorSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(all_sprites)
+        self.f = 1
         self.frames = []
         self.columns = columns
         self.d = {'up': 0, 'down': 0, 'left': 0, 'right': 0}
@@ -103,50 +112,113 @@ class WoinWorSprite(pygame.sprite.Sprite):
                     frame_location, self.rect.size)))
 
     def update(self):
-        keys = pygame.key.get_pressed()
-        move = None
-        if keys[pygame.K_UP]:
-            move = 'up'
-            self.rect.y -= 5
-        elif keys[pygame.K_DOWN]:
-            move = 'down'
-            self.rect.y += 5
-        elif keys[pygame.K_LEFT]:
-            move = 'left'
-            self.rect.x -= 5
-        elif keys[pygame.K_RIGHT]:
-            move = 'right'
-            self.rect.x += 5
-        if move:
-            self.sz += 1
-            if self.sz > self.counter:
-                self.sz = 0
-                self.cur_frame = ((self.cur_frame + 1) % self.columns)
-                self.image = pygame.transform.scale(self.frames[self.cur_frame + self.d[move] * self.columns], (147, 133))
-                if move == 'left':
-                    self.image = pygame.transform.flip(self.image, True, False)
+        if self.f:
+            keys = pygame.key.get_pressed()
+            move = None
+            if keys[pygame.K_UP]:
+                move = 'up'
+                self.rect.y -= 5
+            elif keys[pygame.K_DOWN]:
+                move = 'down'
+                self.rect.y += 5
+            elif keys[pygame.K_LEFT]:
+                move = 'left'
+                self.rect.x -= 5
+            elif keys[pygame.K_RIGHT]:
+                move = 'right'
+                self.rect.x += 5
+            if move:
+                self.sz += 1
+                if self.sz > self.counter:
+                    self.sz = 0
+                    self.cur_frame = ((self.cur_frame + 1) % self.columns)
+                    self.image = pygame.transform.scale(self.frames[self.cur_frame + self.d[move] * self.columns], (147, 133))
+                    if move == 'left':
+                        self.image = pygame.transform.flip(self.image, True, False)
+
+    def mover(self):
+        self.f = 0
+
+    def imover(self):
+        self.f = 1
 
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, tile_type, pos_x, pos_y):
-        super().__init__(tiles_group, all_sprites)
-        self.image = pygame.transform.scale('pol.jpg', (width, height))
+    def __init__(self):
+        super().__init__(tiles_group)
+        self.image = pygame.transform.scale(load_image('pol.jpg'), (width, height))
         self.rect = self.image.get_rect().move(0, 0)
+
+
+class Sten(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(tiles_group)
+        self.image = pygame.transform.scale(load_image('sten.jpg'), (width, height))
+        self.rect = self.image.get_rect().move(0, 0)
+
+
+class Torg(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(all_sprites)
+        self.image = pygame.transform.scale(load_image('lav.png'), (300, 300))
+        self.rect = self.image.get_rect().move(0, 0)
+
+
+class Port(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(all_sprites)
+        self.image = pygame.transform.scale(load_image('port.png', colorkey=-1), (300, 300))
+        self.rect = self.image.get_rect().move(800, 0)
 
 
 if __name__ == '__main__':
     screen = pygame.display.set_mode(size)
     screen_rect = (0, 0, width, height)
-    hero = WoinWorSprite(load_image(polz, colorkey=-1), 8, 1, 200, 200)
+    Tile()
+    Tor = Torg()
+    Por = Port()
+    hero = MagSprite(load_image(polz, colorkey=-1), 5, 3, 400, 400)
+    sz = 0
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+        if pygame.sprite.collide_mask(hero, Tor):
+            print('Yes')
+            sz += 1
+            hero.mover()
+            if sz == 10:
+                sz = 0
+                hero.imover()
+        if pygame.sprite.collide_mask(hero, Por):
+            pygame.quit()
+            break
+        all_sprites.update()
+        screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
+        all_sprites.draw(screen)
 
+        pygame.display.flip()
+        clock.tick(FPS)
+print(1)
+all_sprites = pygame.sprite.Group()
+tiles_group = pygame.sprite.Group()
+
+if __name__ == '__main__':
+    print(2)
+    pygame.init()
+    screen = pygame.display.set_mode(size)
+    screen_rect = (0, 0, width, height)
+    Sten()
+    while True:
+        print(3)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
         all_sprites.update()
         screen.fill((0, 0, 0))
         all_sprites.draw(screen)
-
         pygame.display.flip()
         clock.tick(FPS)
