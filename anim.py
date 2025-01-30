@@ -2,13 +2,36 @@ import os
 import sys
 import random
 import pygame
+import sqlite3
 
 
 name = input('Перед началом игры введите свой никнейм: ')
+con = sqlite3.connect('users')
+cur = con.cursor()
+result = cur.execute("""SELECT name FROM users""").fetchall()
+id = 0
+sz = 0
+for i in result:
+    if i[0] == name:
+        print('Вы уже зарегистрированы')
+        id = sz
+        break
+    sz += 1
+else:
+    cur.execute(f"""INSERT INTO users (name, klass, level) VALUES (?, ?, ?)""", (name, random.randint(1, 3), random.randint(1, 3)))
+    con.commit()
+    print('Вы успешно зарегистрированы')
+    id = len(result)
+    print(id)
+
+print(id)
+result = cur.execute("""SELECT * FROM users """).fetchall()
+
+print(result)
 FPS = 50
 pygame.init()
-pname = ['mag.png', 'woin.png', 'wor.png']
-ppname = ['mb.png', 'woin.png', 'wor.png']
+pname = ['woin.png', 'mag.png', 'wor.png']
+ppname = ['woin.png', 'mb.png', 'wor.png']
 size = width, height = 1200, 800
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
@@ -16,7 +39,7 @@ tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
-tb = 0
+tb = result[id][2] - 1
 polz = pname[tb]
 
 
@@ -212,10 +235,10 @@ if __name__ == '__main__':
     Tile()
     Tor = Torg()
     Por = Port()
-    if tb:
+    if tb != '1':
         hero = WoinWorSprite(load_image(polz, colorkey=-1), 4, 1, 400, 400)
     else:
-        hero = MagSprite(load_image(polz, colorkey=-1), 5, 3, 400, 400)
+        hero = MagSprite(load_image(polz, colorkey=-1), 1, 1, 400, 400)
     sz = 0
     while True:
         for event in pygame.event.get():
