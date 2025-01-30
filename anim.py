@@ -2,12 +2,13 @@ import os
 import sys
 import random
 import pygame
-from pygame.examples.moveit import WIDTH
 
+
+name = input('Перед началом игры введите свой никнейм: ')
 FPS = 50
 pygame.init()
 pname = ['mag.png', 'woin.png', 'wor.png']
-polz = pname[0]
+ppname = ['mb.png', 'woin.png', 'wor.png']
 size = width, height = 1200, 800
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
@@ -15,6 +16,8 @@ tiles_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
+tb = 0
+polz = pname[tb]
 
 
 def load_image(name, colorkey=None):
@@ -171,13 +174,48 @@ class Port(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(800, 0)
 
 
+def terminate():
+    pygame.quit()
+    sys.exit()
+
+def start_screen():
+    intro_text = ["Добро пожаловать", ""]
+
+    fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
+    screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 if __name__ == '__main__':
+    start_screen()
     screen = pygame.display.set_mode(size)
     screen_rect = (0, 0, width, height)
     Tile()
     Tor = Torg()
     Por = Port()
-    hero = MagSprite(load_image(polz, colorkey=-1), 5, 3, 400, 400)
+    if tb:
+        hero = WoinWorSprite(load_image(polz, colorkey=-1), 4, 1, 400, 400)
+    else:
+        hero = MagSprite(load_image(polz, colorkey=-1), 5, 3, 400, 400)
     sz = 0
     while True:
         for event in pygame.event.get():
@@ -192,7 +230,6 @@ if __name__ == '__main__':
                 sz = 0
                 hero.imover()
         if pygame.sprite.collide_mask(hero, Por):
-            pygame.quit()
             break
         all_sprites.update()
         screen.fill((0, 0, 0))
@@ -201,24 +238,77 @@ if __name__ == '__main__':
 
         pygame.display.flip()
         clock.tick(FPS)
-print(1)
+
+polz = ppname[tb]
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
+FPS = 5
+
+
+class MagB(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.columns = columns
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = ((self.cur_frame + 1) % self.columns)
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (147 * 2, 133 * 2))
+
+
+class Wrag1(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(all_sprites)
+        self.frames = []
+        self.columns = columns
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
+
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+
+    def update(self):
+        self.cur_frame = ((self.cur_frame + 1) % self.columns)
+        self.image = pygame.transform.scale(self.frames[self.cur_frame], (147 * 2, 133 * 2))
+        self.image = pygame.transform.flip(self.image, True, False)
+
 
 if __name__ == '__main__':
-    print(2)
     pygame.init()
+    hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
+    wrag = Wrag1(load_image('wrag1.png', colorkey=-1), 8, 1, 500, 400)
     screen = pygame.display.set_mode(size)
     screen_rect = (0, 0, width, height)
     Sten()
     while True:
-        print(3)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
         all_sprites.update()
         screen.fill((0, 0, 0))
+        tiles_group.draw(screen)
         all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
