@@ -30,6 +30,7 @@ FPS = 50
 pygame.init()
 pname = ['woin.png', 'mag.png', 'wor.png']
 ppname = ['woinb.png', 'mb.png', 'worb.png']
+sname = ['woins.png', 'mags.png', 'wors.png']
 size = width, height = 1200, 800
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
@@ -200,7 +201,7 @@ def terminate():
     sys.exit()
 
 def start_screen():
-    intro_text = ["Добро пожаловать", ""]
+    intro_text = ["Добро пожаловать", name]
 
     fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
     screen.blit(fon, (0, 0))
@@ -315,10 +316,27 @@ class Wrag1(pygame.sprite.Sprite):
         self.image = pygame.transform.flip(self.image, True, False)
 
 
+def end_screen():
+    fon = pygame.transform.scale(load_image('end.jpg'), (width, height))
+    screen.blit(fon, (0, 0))
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN or \
+                    event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
 if __name__ == '__main__':
     pygame.init()
     pl = 0
     tl = result[id][3]
+    f = 1
+    f1 = 1
     print(tl)
     hph = tl * random.randint(3, 10)
     hpw = tl * random.randint(1, 6)
@@ -336,6 +354,7 @@ if __name__ == '__main__':
                 pygame.quit()
                 sys.exit()
         print(hph, hpw)
+        ws = 0
         a = random.randint(1, 5) * tl // 10
         b = random.randint(1, 8) * tl // 10
         if a == 0:
@@ -350,30 +369,58 @@ if __name__ == '__main__':
         all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
-        if hph <= 0:
-            print('You lose')
-            break
-        if hpw <= 0:
-            print('You win')
-            pl += 1
-            if pl >= tl:
-                tl += 1
-                cur = con.cursor()
-                cur.execute(f"UPDATE users SET level = 100")
-                print(1)
-                pl = 0
-            all_sprites = pygame.sprite.Group()
-            sz = (sz + 1) % 2
-            if tl >= 999:
-                hph = tl * random.randint(3, 10)
+        if f and f1:
+            if hph <= 0:
+                all_sprites = pygame.sprite.Group()
+                polz = sname[tb]
+                hero = MagB(load_image(polz, colorkey=-1), 6, 1, 300, 400)
+                f = 0
+            if hpw <= 0:
+                print('You win')
+                pl += 1
+                if pl >= tl:
+                    tl += 1
+                    con.commit()
+                    cur = con.cursor()
+                    cur.execute(f"UPDATE users SET level = ? WHERE name = ?", (tl, name))
+                    pl = 0
+                    ws = 0
+                all_sprites = pygame.sprite.Group()
+                ws = (ws + 1) % 2
+                if tl >= 999:
+                    hph = tl * random.randint(3, 10)
+                else:
+                    hph = tl * random.randint(1, 6)
+                hpw = tl * random.randint(1, 6)
+                if tb != 0:
+                    hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
+                else:
+                    hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
+                if ws == 0:
+                    wrag = Wrag1(load_image('wrag1s.png', colorkey=-1), 6, 1, 500, 400)
+                else:
+                    wrag = Wrag1(load_image('wrag2s.png', colorkey=-1), 9, 1, 500, 400)
+        else:
+            if f1:
+                sz += 1
+                if sz == 5:
+                    end_screen()
+                    break
             else:
-                hph = tl * random.randint(1, 6)
-            hpw = tl * random.randint(1, 6)
-            if tb != 0:
-                hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
-            else:
-                hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
-            if sz == 0:
-                wrag = Wrag1(load_image('wrag1.png', colorkey=-1), 8, 1, 500, 400)
-            else:
-                wrag = Wrag1(load_image('wrag2.png', colorkey=-1), 5, 1, 500, 400)
+                sz += 1
+                if ws == 0 and sz == 5:
+                    all_sprites = pygame.sprite.Group()
+                    if tb != 0:
+                        hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
+                    else:
+                        hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
+                    wrag = Wrag1(load_image('wrag1.png', colorkey=-1), 6, 1, 500, 400)
+                    f1 = 1
+                elif ws == 1 and sz == 7:
+                    all_sprites = pygame.sprite.Group()
+                    if tb != 0:
+                        hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
+                    else:
+                        hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
+                    wrag = Wrag1(load_image('wrag2.png', colorkey=-1), 8, 1, 500, 400)
+                    f1 = 1
