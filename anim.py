@@ -22,10 +22,7 @@ else:
     con.commit()
     print('Вы успешно зарегистрированы')
     id = len(result)
-print(id)
 result = cur.execute("""SELECT * FROM users """).fetchall()
-
-print(result)
 FPS = 50
 pygame.init()
 pname = ['woin.png', 'mag.png', 'wor.png']
@@ -35,6 +32,7 @@ size = width, height = 1200, 800
 screen = pygame.display.set_mode(size)
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
+tov_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
@@ -189,11 +187,25 @@ class Torg(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(0, 0)
 
 
+class Tow(pygame.sprite.Sprite):
+    def __init__(self, name, pos_x, pos_y):
+        super().__init__(tov_group)
+        self.image = pygame.transform.scale(load_image(name), (300, 300))
+        self.rect = self.image.get_rect().move(pos_x, pos_y)
+
+
 class Port(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__(all_sprites)
         self.image = pygame.transform.scale(load_image('port.png', colorkey=-1), (300, 300))
         self.rect = self.image.get_rect().move(800, 0)
+
+
+class Win(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__(all_sprites)
+        self.image = pygame.transform.scale(load_image('win.png'), (width, height))
+        self.rect = self.image.get_rect().move(0, 0)
 
 
 def terminate():
@@ -202,7 +214,6 @@ def terminate():
 
 def start_screen():
     intro_text = ["Добро пожаловать", name]
-
     fon = pygame.transform.scale(load_image('fon.jpg'), (width, height))
     screen.blit(fon, (0, 0))
     font = pygame.font.Font(None, 30)
@@ -228,6 +239,10 @@ def start_screen():
 
 
 if __name__ == '__main__':
+    cur = con.cursor()
+    result = cur.execute("""SELECT * FROM users""").fetchall()
+    f = 0
+    up = True
     start_screen()
     screen = pygame.display.set_mode(size)
     screen_rect = (0, 0, width, height)
@@ -245,19 +260,33 @@ if __name__ == '__main__':
                 pygame.quit()
                 sys.exit()
         if pygame.sprite.collide_mask(hero, Tor):
-            print('Yes')
-            sz += 1
-            hero.mover()
-            if sz == 10:
-                sz = 0
-                hero.imover()
-        if pygame.sprite.collide_mask(hero, Por):
+            if up:
+                sp = []
+                sp.append(Tow('exit.png', 200, 400))
+                sp.append(Tow('levelup.png', 600, 400))
+                f = 1
+                sz += 1
+                hero.mover()
+                if sz == 2:
+                    sz = 0
+                    hero.imover()
+        if pygame.sprite.collide_mask(hero, Por) and not f:
             break
         all_sprites.update()
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         all_sprites.draw(screen)
-
+        if f:
+            tov_group.draw(screen)
+            if pygame.sprite.collide_mask(hero, sp[0]) and event.type == pygame.MOUSEBUTTONDOWN:
+                f = 0
+            elif pygame.sprite.collide_mask(hero, sp[1]) and event.type == pygame.MOUSEBUTTONDOWN:
+                tl = result[id][3] + 1
+                con.commit()
+                cur = con.cursor()
+                cur.execute(f"UPDATE users SET level = ? WHERE name = ?", (tl, name))
+                f = 0
+                up = False
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -337,6 +366,7 @@ if __name__ == '__main__':
     tl = result[id][3]
     f = 1
     f1 = 1
+    ws = 0
     print(tl)
     hph = tl * random.randint(3, 10)
     hpw = tl * random.randint(1, 6)
@@ -353,16 +383,6 @@ if __name__ == '__main__':
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        print(hph, hpw)
-        ws = 0
-        a = random.randint(1, 5) * tl // 10
-        b = random.randint(1, 8) * tl // 10
-        if a == 0:
-            a = 1
-        if b == 0:
-            b = 1
-        hph -= a
-        hpw -= b
         all_sprites.update()
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
@@ -370,14 +390,25 @@ if __name__ == '__main__':
         pygame.display.flip()
         clock.tick(FPS)
         if f and f1:
+            a = random.randint(1, 5) * tl // 10
+            b = random.randint(1, 8) * tl // 10
+            if a == 0:
+                a = 1
+            if b == 0:
+                b = 1
+            hph -= a
+            hpw -= b
+            print(hph, hpw)
             if hph <= 0:
                 all_sprites = pygame.sprite.Group()
                 polz = sname[tb]
                 hero = MagB(load_image(polz, colorkey=-1), 6, 1, 300, 400)
                 f = 0
+                sz = 0
             if hpw <= 0:
-                print('You win')
                 pl += 1
+                f1 = 0
+                sz = 0
                 if pl >= tl:
                     tl += 1
                     con.commit()
@@ -386,41 +417,29 @@ if __name__ == '__main__':
                     pl = 0
                     ws = 0
                 all_sprites = pygame.sprite.Group()
+                Win()
                 ws = (ws + 1) % 2
-                if tl >= 999:
-                    hph = tl * random.randint(3, 10)
-                else:
-                    hph = tl * random.randint(1, 6)
+                hph = tl * random.randint(3, 10)
                 hpw = tl * random.randint(1, 6)
+                if ws:
+                    wrag = Wrag1(load_image('wrag1s.png', colorkey=-1), 6, 1, 500, 400)
+                else:
+                    wrag = Wrag1(load_image('wrag2s.png', colorkey=-1), 6, 1, 500, 400)
+        elif f1:
+            sz += 1
+            if sz == 5:
+                end_screen()
+                break
+        else:
+            sz += 1
+            if sz == 5:
+                all_sprites = pygame.sprite.Group()
                 if tb != 0:
                     hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
                 else:
                     hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
-                if ws == 0:
-                    wrag = Wrag1(load_image('wrag1s.png', colorkey=-1), 6, 1, 500, 400)
+                if ws:
+                    wrag = Wrag1(load_image('wrag2.png', colorkey=-1), 5, 1, 500, 400)
                 else:
-                    wrag = Wrag1(load_image('wrag2s.png', colorkey=-1), 9, 1, 500, 400)
-        else:
-            if f1:
-                sz += 1
-                if sz == 5:
-                    end_screen()
-                    break
-            else:
-                sz += 1
-                if ws == 0 and sz == 5:
-                    all_sprites = pygame.sprite.Group()
-                    if tb != 0:
-                        hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
-                    else:
-                        hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
-                    wrag = Wrag1(load_image('wrag1.png', colorkey=-1), 6, 1, 500, 400)
-                    f1 = 1
-                elif ws == 1 and sz == 7:
-                    all_sprites = pygame.sprite.Group()
-                    if tb != 0:
-                        hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
-                    else:
-                        hero = MagB(load_image(polz, colorkey=-1), 8, 1, 300, 400)
-                    wrag = Wrag1(load_image('wrag2.png', colorkey=-1), 8, 1, 500, 400)
-                    f1 = 1
+                    wrag = Wrag1(load_image('wrag1.png', colorkey=-1), 8, 1, 500, 400)
+                f1 = 1
