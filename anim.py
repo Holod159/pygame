@@ -34,6 +34,7 @@ all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
 tov_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+ser_group = pygame.sprite.Group()
 box_group = pygame.sprite.Group()
 clock = pygame.time.Clock()
 tb = result[id][2] - 1
@@ -191,6 +192,13 @@ class Tow(pygame.sprite.Sprite):
     def __init__(self, name, pos_x, pos_y):
         super().__init__(tov_group)
         self.image = pygame.transform.scale(load_image(name), (300, 300))
+        self.rect = self.image.get_rect().move(pos_x, pos_y)
+
+
+class Ser(pygame.sprite.Sprite):
+    def __init__(self, pos_x, pos_y):
+        super().__init__(ser_group)
+        self.image = pygame.transform.scale(load_image('ser.png', colorkey=-1), (25, 25))
         self.rect = self.image.get_rect().move(pos_x, pos_y)
 
 
@@ -370,6 +378,8 @@ if __name__ == '__main__':
     print(tl)
     hph = tl * random.randint(3, 10)
     hpw = tl * random.randint(1, 6)
+    nhh = hph
+    nhw = hpw
     if tb != 0:
         hero = MagB(load_image(polz, colorkey=-1), 4, 1, 300, 400)
     else:
@@ -387,6 +397,7 @@ if __name__ == '__main__':
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
         all_sprites.draw(screen)
+        ser_group.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
         if f and f1:
@@ -398,11 +409,19 @@ if __name__ == '__main__':
                 b = 1
             hph -= a
             hpw -= b
+            khh = (hph - 1) / nhh
+            khw = (hpw - 1) / nhw
+            ser_group = pygame.sprite.Group()
+            for i in range(int(khh // 0.2) + 1):
+                Ser(i * 25 + 400, 400)
+            for i in range(int(khw // 0.2) + 1):
+                Ser(i * 25 + 600, 400)
             print(hph, hpw)
             if hph <= 0:
                 all_sprites = pygame.sprite.Group()
                 polz = sname[tb]
                 hero = MagB(load_image(polz, colorkey=-1), 6, 1, 300, 400)
+                ser_group = pygame.sprite.Group()
                 f = 0
                 sz = 0
             if hpw <= 0:
@@ -421,6 +440,9 @@ if __name__ == '__main__':
                 ws = (ws + 1) % 2
                 hph = tl * random.randint(3, 10)
                 hpw = tl * random.randint(1, 6)
+                nhh = hph
+                nhw = hpw
+                ser_group = pygame.sprite.Group()
                 if ws:
                     wrag = Wrag1(load_image('wrag1s.png', colorkey=-1), 6, 1, 500, 400)
                 else:
