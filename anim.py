@@ -356,8 +356,19 @@ class Wrag1(pygame.sprite.Sprite):
 
 
 def end_screen():
+    intro_text = ["Вы умерли, ваш конечный уровень равен" + str(tl - 1)]
     fon = pygame.transform.scale(load_image('end.jpg'), (width, height))
     screen.blit(fon, (0, 0))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in intro_text:
+        string_rendered = font.render(line, 1, pygame.Color('white'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
 
     while True:
         for event in pygame.event.get():
@@ -369,7 +380,6 @@ def end_screen():
         pygame.display.flip()
         clock.tick(FPS)
 
-
 if __name__ == '__main__':
     pygame.init()
     pl = 0
@@ -377,7 +387,6 @@ if __name__ == '__main__':
     f = 1
     f1 = 1
     ws = 0
-    print(tl)
     hph = tl * random.randint(3, 10)
     hpw = tl * random.randint(1, 6)
     nhh = hph
@@ -418,7 +427,7 @@ if __name__ == '__main__':
                 Ser(i * 25 + 400, 400)
             for i in range(int(khw // 0.2) + 1):
                 Ser(i * 25 + 600, 400)
-            print(hph, hpw)
+
             if hph <= 0:
                 all_sprites = pygame.sprite.Group()
                 polz = sname[tb]
@@ -426,7 +435,7 @@ if __name__ == '__main__':
                 ser_group = pygame.sprite.Group()
                 f = 0
                 sz = 0
-            if hpw <= 0:
+            elif hpw <= 0:
                 pl += 1
                 f1 = 0
                 sz = 0
@@ -453,6 +462,7 @@ if __name__ == '__main__':
             sz += 1
             if sz == 5:
                 end_screen()
+                print('Вы умерли, ваш конечный уровень равен', tl - 1)
                 break
         else:
             sz += 1
