@@ -22,6 +22,7 @@ else:
     con.commit()
     print('Вы успешно зарегистрированы')
     id = len(result)
+print('Товары в магазине можно купить, выбрав их и нажав кнопку мыши')
 result = cur.execute("""SELECT * FROM users """).fetchall()
 FPS = 50
 pygame.init()
@@ -248,9 +249,11 @@ def start_screen():
 
 if __name__ == '__main__':
     cur = con.cursor()
+    sp = []
     result = cur.execute("""SELECT * FROM users""").fetchall()
     f = 0
     up = True
+    event = pygame.event.get()
     start_screen()
     screen = pygame.display.set_mode(size)
     screen_rect = (0, 0, width, height)
@@ -269,7 +272,6 @@ if __name__ == '__main__':
                 sys.exit()
         if pygame.sprite.collide_mask(hero, Tor):
             if up:
-                sp = []
                 sp.append(Tow('exit.png', 200, 400))
                 sp.append(Tow('levelup.png', 600, 400))
                 f = 1
@@ -283,7 +285,6 @@ if __name__ == '__main__':
         all_sprites.update()
         screen.fill((0, 0, 0))
         tiles_group.draw(screen)
-        all_sprites.draw(screen)
         if f:
             tov_group.draw(screen)
             if pygame.sprite.collide_mask(hero, sp[0]) and event.type == pygame.MOUSEBUTTONDOWN:
@@ -295,6 +296,7 @@ if __name__ == '__main__':
                 cur.execute(f"UPDATE users SET level = ? WHERE name = ?", (tl, name))
                 f = 0
                 up = False
+        all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
